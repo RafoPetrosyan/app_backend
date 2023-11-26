@@ -1,0 +1,87 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "API Documentation"
+  },
+  "paths": {
+    "/api/users/sign-in": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Sign in",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "data",
+            "in": "body",
+            "schema": {
+              "required": [
+                "password",
+                "email"
+              ],
+              "properties": {
+                "password": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/users/sign-up": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Sign up",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "schema": {
+              "required": [
+                "password",
+                "email"
+              ],
+              "properties": {
+                "password": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    }
+  }
+}
