@@ -5,13 +5,9 @@ import cookieParser from "cookie-parser";
 import logger from "morgan";
 import Debug from "debug";
 import indexRouter from "./routes/index.js";
-// import authorization from "./middlewares/authorization.js";
+import authorization from "./middlewares/authorization.js";
 import cors from "./middlewares/cors.js";
 import language from "./middlewares/language.js";
-
-const htmlDirection = path.resolve(path.join('./templates', 'forgot-template.ejs'));
-
-console.log(htmlDirection, 4444444)
 
 const debug = Debug('app:index');
 const app = express();
@@ -34,7 +30,7 @@ app.use((req, res, next) => {
 });
 app.use(express.static(path.resolve('./public')));
 
-// app.use(authorization);
+app.use(authorization);
 
 app.use('/api', indexRouter);
 

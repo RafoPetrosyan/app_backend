@@ -29,12 +29,19 @@
                                             <tbody>
                                             <tr>
                                                 <td>
-                                                    <strong style="color:#234567">Hi <%= name %>, </strong>
                                                     <h1 style="font-size:24px;line-height:30px;color:#054752;word-break:normal">
-                                                        Welcome to Timeless!
+                                                        Welcome to Test app!
                                                     </h1>
-                                                    <p style="font-size:18px;line-height:30px;color:#054752;word-break:normal"><%= content %></p>
-                                                    <p style="font-size:16px;line-height:30px;color:#054752;word-break:normal"><%= confirmMessage %><strong><%= password %></strong></p>
+                                                    <p style="font-size:18px;line-height:30px;color:#054752;word-break:normal">
+                                                        Your verification code is
+                                                        <span style="font-size:18px;font-weight:bold;line-height:30px;color:#054752;word-break:normal">
+                                                            <%= verificationCode %>
+                                                        </span>
+
+                                                        Enter this code in our app to activate your account.
+
+                                                        If you have any questions, send us an email examplegmail.com.
+                                                    </p>
                                                 </td>
                                             </tr>
                                             </tbody>

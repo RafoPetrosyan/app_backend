@@ -2,12 +2,9 @@ import jwt from 'jsonwebtoken';
 import {Op} from "sequelize";
 import HttpError from "http-errors";
 import Joi from 'joi';
-import path from 'path';
-import ejs from 'ejs';
 import Users from "../models/Users.js";
 import validate from "../validations/validate.js";
-import {translate} from "../helpers/index.js";
-import {sendMail} from "../services/nodemailer.js";
+import {emailVerification, generateRandomCode, translate} from "../helpers/index.js";
 
 const {JWT_SECRET} = process.env;
 
@@ -15,14 +12,6 @@ class UsersController {
     static signIn = async (req, res, next) => {
         try {
             const {email, password} = req.body;
-
-            const content = 'You recently requested to reset your password for your Timeless account.';
-            const confirmMessage = 'Your new password is - ';
-            const htmlDirection = path.resolve(path.join('./templates', 'forgot-template.ejs'));
-            const html = await ejs.renderFile(htmlDirection, {name: 'Poxos', password, content, confirmMessage});
-            const subject = 'Resetting your password for Timeless'
-
-            const {messageId} = await sendMail({email, subject, html});
 
             const schema = Joi.object({
                 email : Joi.string().required().email().label(translate('email', req.lang)),
@@ -78,12 +67,18 @@ class UsersController {
             }
 
             const user = await Users.create({email, password});
+
+            const verificationCode = generateRandomCode();
+            await emailVerification(email, verificationCode)
+
             const token = jwt.sign({userId: user.id}, JWT_SECRET);
+            const verify_token = jwt.sign({userId: user.id, verificationCode}, JWT_SECRET, {expiresIn: '1m'});
 
             res.json({
                 status: 'ok',
                 user,
                 token,
+                verify_token,
             })
 
         } catch (e) {
@@ -145,6 +140,74 @@ class UsersController {
             res.json({
                 status: 'ok',
                 data,
+            });
+        } catch (e) {
+            next(e);
+        }
+    };
+
+    static sendEmailVerification = async (req, res, next) => {
+        try {
+            const {userId} = req;
+            const user = Users.findByPk(userId);
+
+            if (!user) {
+                throw HttpError(404, 'User not found');
+            }
+
+            const {firstName, lastName, cityId} = req.body;
+
+            await Users.update({
+                firstName, lastName, cityId,
+            }, {
+                where: {
+                    id: userId,
+                }
+            });
+            const data = await Users.findByPk(userId);
+
+            res.json({
+                status: 'ok',
+                data,
+            });
+        } catch (e) {
+            next(e);
+        }
+    };
+
+    static confirmVerification = async (req, res, next) => {
+        try {
+            const {userId} = req;
+            const {code, verify_token = ''} = req.body;
+
+            if (!code || !verify_token) {
+                throw HttpError(422, 'Invalid data');
+            }
+
+            let tokenData;
+            try {
+                tokenData = jwt.verify(verify_token, JWT_SECRET);
+            } catch(err) {
+                throw HttpError(403, 'Verify token expired');
+            }
+
+            if (userId !== tokenData.userId) {
+                throw HttpError(401, 'Unauthorized request');
+            }
+            if (code !== tokenData.verificationCode) {
+                throw HttpError(422, translate('wrongCode', req.lang));
+            }
+
+            await Users.update({verified: true}, {
+                where: {
+                    id: userId,
+                }
+            });
+            const user = await Users.findByPk(userId);
+
+            res.json({
+                status: 'ok',
+                user,
             });
         } catch (e) {
             next(e);
