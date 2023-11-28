@@ -82,6 +82,75 @@
           }
         }
       }
+    },
+    "/api/users/confirm-verification": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Confirm verification",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "data",
+            "in": "body",
+            "schema": {
+              "required": [
+                "code",
+                "verify_token"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "verify_token": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Verify token expire"
+          },
+          "422": {
+            "description": "Invalid code"
+          }
+        }
+      }
+    },
+    "/api/users/resend-verification": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Resend verification",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
     }
   }
 }

@@ -5,7 +5,6 @@ import cookieParser from "cookie-parser";
 import logger from "morgan";
 import Debug from "debug";
 import indexRouter from "./routes/index.js";
-import authorization from "./middlewares/authorization.js";
 import cors from "./middlewares/cors.js";
 import language from "./middlewares/language.js";
 
@@ -29,8 +28,6 @@ app.use((req, res, next) => {
     next();
 });
 app.use(express.static(path.resolve('./public')));
-
-app.use(authorization);
 
 app.use('/api', indexRouter);
 

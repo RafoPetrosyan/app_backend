@@ -146,35 +146,6 @@ class UsersController {
         }
     };
 
-    static sendEmailVerification = async (req, res, next) => {
-        try {
-            const {userId} = req;
-            const user = Users.findByPk(userId);
-
-            if (!user) {
-                throw HttpError(404, 'User not found');
-            }
-
-            const {firstName, lastName, cityId} = req.body;
-
-            await Users.update({
-                firstName, lastName, cityId,
-            }, {
-                where: {
-                    id: userId,
-                }
-            });
-            const data = await Users.findByPk(userId);
-
-            res.json({
-                status: 'ok',
-                data,
-            });
-        } catch (e) {
-            next(e);
-        }
-    };
-
     static confirmVerification = async (req, res, next) => {
         try {
             const {userId} = req;
@@ -208,6 +179,29 @@ class UsersController {
             res.json({
                 status: 'ok',
                 user,
+            });
+        } catch (e) {
+            next(e);
+        }
+    };
+
+    static resendVerification = async (req, res, next) => {
+        try {
+            const {userId} = req;
+            const user = await Users.findByPk(userId);
+
+            if (user.verified) {
+                throw HttpError(422, 'User already verified');
+            }
+
+            const verificationCode = generateRandomCode();
+            await emailVerification(user.email, verificationCode);
+
+            const verify_token = jwt.sign({userId: user.id, verificationCode}, JWT_SECRET, {expiresIn: '1m'});
+
+            res.json({
+                status: 'ok',
+                verify_token,
             });
         } catch (e) {
             next(e);

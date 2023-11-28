@@ -3,11 +3,6 @@ import HttpError from "http-errors";
 
 const {JWT_SECRET} = process.env;
 
-const EXCLUDE = [
-    'POST:/api/users/sign-in',
-    'POST:/api/users/sign-up',
-]
-
 export default function authorization(req, res, next) {
     try {
         if (req.method === 'OPTIONS') {
@@ -15,10 +10,6 @@ export default function authorization(req, res, next) {
             return;
         }
 
-        if (EXCLUDE.includes(req.method + ':' + req.path)) {
-            next();
-            return;
-        }
         const authorization = req.headers.authorization || '';
         const data = jwt.verify(authorization.replace('Bearer ', ''), JWT_SECRET);
 
