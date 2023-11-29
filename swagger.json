@@ -151,6 +151,90 @@
           }
         }
       }
+    },
+
+
+    "/api/categories": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "List of categories",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/categories/sub": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "List of sub categories",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
     }
   }
 }

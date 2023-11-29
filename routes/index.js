@@ -2,6 +2,7 @@ import {Router} from "express";
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocument from "../swagger.json" assert {type: 'json'};
 import users from "./users.js";
+import categories from "./categories.js";
 
 const router = Router();
 
@@ -17,6 +18,7 @@ router.get('/', (req, res, next) => {
 })
 
 router.use('/users', users);
+router.use('/categories', categories);
 router.use('/docs', swaggerUi.serve,  swaggerUi.setup(swaggerDocument, options));
 
 export default router;
