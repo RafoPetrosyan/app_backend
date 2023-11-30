@@ -1,6 +1,7 @@
 import {DataTypes, Model} from "sequelize";
 import md5 from "md5";
 import sequelize from "../services/sequelize.js";
+import {signInProviders} from "../constants/index.js";
 
 const {PASSWORD_SECRET} = process.env;
 
@@ -56,16 +57,14 @@ Users.init({
         type: DataTypes.BOOLEAN,
         defaultValue: false,
     },
-    created_at: {
-        type: DataTypes.DATE,
-        defaultValue: sequelize.literal('NOW()')
-    },
-    updated_at: {
-        type: DataTypes.DATE,
-        defaultValue: sequelize.literal('NOW()')
+    provider: {
+        type: DataTypes.ENUM(...signInProviders),
+        get() {
+            return undefined;
+        }
     }
 }, {
-    timestamps: false,
+    timestamps: true,
     sequelize,
     tableName: 'users',
     modelName: 'users',

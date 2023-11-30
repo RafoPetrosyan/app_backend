@@ -6,13 +6,9 @@ import Categories from "./Categories.js";
 class CategoryLanguages extends Model {}
 
 CategoryLanguages.init({
-    id: {
-        type: DataTypes.BIGINT,
-        autoIncrement: true,
+    category_id: {
         allowNull: false,
         primaryKey: true,
-    },
-    category_id: {
         type: DataTypes.BIGINT,
     },
     name: {

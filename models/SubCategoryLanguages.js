@@ -7,14 +7,10 @@ class SubCategoryLanguages extends Model {
 }
 
 SubCategoryLanguages.init({
-    id: {
-        type: DataTypes.BIGINT,
-        autoIncrement: true,
-        allowNull: false,
-        primaryKey: true,
-    },
     sub_category_id: {
         type: DataTypes.BIGINT,
+        allowNull: false,
+        primaryKey: true,
     },
     name: {
         type: DataTypes.STRING,

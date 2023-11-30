@@ -5,6 +5,9 @@ import Joi from 'joi';
 import Users from "../models/Users.js";
 import validate from "../validations/validate.js";
 import {emailVerification, generateRandomCode, translate} from "../helpers/index.js";
+import SubCategories from "../models/SubCategories.js";
+import UserPreferences from "../models/UserPreferences.js";
+import {signInProviders} from "constants/index.js";
 
 const {JWT_SECRET} = process.env;
 
@@ -40,6 +43,45 @@ class UsersController {
                 status: 'ok',
                 token,
                 user,
+            })
+
+        } catch (e) {
+            next(e)
+        }
+    }
+
+    static socialLogin = async (req, res, next) => {
+        try {
+            const {provider, access_token} = req.body;
+
+            if (!provider || !access_token) {
+                throw HttpError(422, 'Invalid data');
+            }
+
+            if (!signInProviders.includes(provider)) {
+                throw HttpError(422, 'Wrong provider');
+            }
+
+            // const user = await Users.findOne({
+            //     where: {
+            //         email,
+            //         password: Users.hashPassword(password),
+            //     },
+            // });
+
+
+            // if (!user) {
+            //     throw HttpError(401, translate('invalidEmailOrPassword', req.lang));
+            // }
+
+            // const token = jwt.sign({userId: user.id}, JWT_SECRET, {
+            //     expiresIn: '1h'
+            // });
+
+            res.json({
+                status: 'ok',
+                // token,
+                // user,
             })
 
         } catch (e) {
@@ -117,7 +159,7 @@ class UsersController {
         }
     };
 
-    static updateProfile = async (req, res, next) => {
+    static signUpUserInfo = async (req, res, next) => {
         try {
             const {userId} = req;
             const user = Users.findByPk(userId);
@@ -126,16 +168,75 @@ class UsersController {
                 throw HttpError(404, 'User not found');
             }
 
-            const {firstName, lastName, cityId} = req.body;
+            const {first_name, last_name, phone_number} = req.body;
+
+            const schema = Joi.object({
+                first_name : Joi.string().required().label(''),
+                last_name : Joi.string().required().label(''),
+                phone_number : Joi.string().required().label(''),
+            });
+
+            await validate({schema, values: {first_name, last_name, phone_number}, lang: req.lang});
 
             await Users.update({
-                firstName, lastName, cityId,
+                first_name, last_name, phone_number
             }, {
                 where: {
                     id: userId,
                 }
             });
             const data = await Users.findByPk(userId);
+
+            res.json({
+                status: 'ok',
+                data,
+            });
+        } catch (e) {
+            next(e);
+        }
+    };
+
+    static addPreferences = async (req, res, next) => {
+        try {
+            const {userId} = req;
+            const {preferences} = req.body;
+            const user = await Users.findByPk(userId);
+
+            if (!user) {
+                throw HttpError(404, 'User not found');
+            }
+
+            if (!preferences) {
+                throw HttpError(422, 'Invalid data');
+            }
+
+            const splitData = preferences.split(',');
+            const checkData = splitData.every(value => !isNaN(Number(value.trim())));
+
+            if (!checkData) {
+                throw HttpError(422, 'Invalid data');
+            }
+
+            const arrayOfIntegers = splitData.map(Number);
+
+            const data = await SubCategories.findAll({
+                where: {
+                    id: {
+                        [Op.or]: arrayOfIntegers,
+                    }
+                }
+            });
+
+            if (data.length !== splitData.length) {
+                throw HttpError(422, 'Invalid data');
+            }
+
+            const insertData = arrayOfIntegers.reduce((acc, item) => {
+                acc.push({user_id: userId, sub_category_id: item})
+                return acc;
+            }, [])
+
+            await UserPreferences.bulkCreate(insertData);
 
             res.json({
                 status: 'ok',
