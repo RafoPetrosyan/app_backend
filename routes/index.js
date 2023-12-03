@@ -2,15 +2,16 @@ import {Router} from "express";
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocument from "../swagger.json" assert {type: 'json'};
 import users from "./users.js";
+import admin from "./admin.js";
 import categories from "./categories.js";
 
 const router = Router();
 
-const options = {
+const swaggerOptions = {
   explorer: false,
   customCss: '.swagger-ui .topbar { display:none}',
   sorter: "alpha",
-  customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-themes@3.0.0/themes/3.x/theme-muted.css'
+  customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui@5.10.3/dist/swagger-ui.min.css'
 };
 
 router.get('/', (req, res, next) => {
@@ -18,7 +19,8 @@ router.get('/', (req, res, next) => {
 })
 
 router.use('/users', users);
+router.use('/admin', admin);
 router.use('/categories', categories);
-router.use('/docs', swaggerUi.serve,  swaggerUi.setup(swaggerDocument, options));
+router.use('/doc', swaggerUi.serve,  swaggerUi.setup(swaggerDocument, swaggerOptions));
 
 export default router;

@@ -27,10 +27,10 @@
                 "email"
               ],
               "properties": {
-                "password": {
+                "email": {
                   "type": "string"
                 },
-                "email": {
+                "password": {
                   "type": "string"
                 }
               }
@@ -63,10 +63,10 @@
                 "email"
               ],
               "properties": {
-                "password": {
+                "email": {
                   "type": "string"
                 },
-                "email": {
+                "password": {
                   "type": "string"
                 }
               }
@@ -251,6 +251,187 @@
                   "type": "string",
                   "example": "1,2",
                   "description": "Sub category ids"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/users/forgot-password": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Forgot password",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "data",
+            "in": "body",
+            "schema": {
+              "required": [
+                "email"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/users/forgot-password/code": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Send forgot password verification code",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "data",
+            "in": "body",
+            "schema": {
+              "required": [
+                "reset_token",
+                "code"
+              ],
+              "properties": {
+                "reset_token": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Token expired"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/users/reset-password": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Reset password",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "data",
+            "in": "body",
+            "schema": {
+              "required": [
+                "password"
+              ],
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "minLength": 6
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/users/update-profile": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update profile",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "data",
+            "in": "body",
+            "schema": {
+              "properties": {
+                "first_name": {
+                  "type": "string"
+                },
+                "last_name": {
+                  "type": "string"
+                },
+                "phone_number": {
+                  "type": "string"
+                },
+                "avatar": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }

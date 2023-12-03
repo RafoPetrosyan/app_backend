@@ -3,7 +3,7 @@ import md5 from "md5";
 import sequelize from "../services/sequelize.js";
 import {signInProviders} from "../constants/index.js";
 
-const {PASSWORD_SECRET} = process.env;
+const {PASSWORD_SECRET, BASE_URL} = process.env;
 
 class Users extends Model {
     static hashPassword = (password) => md5(md5(password) + PASSWORD_SECRET);
@@ -48,6 +48,10 @@ Users.init({
     avatar: {
         type: DataTypes.STRING,
         defaultValue: "",
+        get() {
+            const value = this.getDataValue('avatar');
+            return value ? `${BASE_URL}${value}` : '';
+        }
     },
     verified: {
         type: DataTypes.BOOLEAN,
@@ -62,6 +66,13 @@ Users.init({
         get() {
             return undefined;
         }
+    },
+    verification_code: {
+        type: DataTypes.CHAR(6),
+    },
+    role: {
+        type: DataTypes.ENUM('user', 'admin'),
+        defaultValue: 'user',
     }
 }, {
     timestamps: true,

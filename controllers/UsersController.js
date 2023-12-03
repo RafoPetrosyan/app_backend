@@ -2,23 +2,29 @@ import jwt from 'jsonwebtoken';
 import {Op} from "sequelize";
 import HttpError from "http-errors";
 import Joi from 'joi';
+import fs from 'fs';
+import path from "path";
+import ejs from "ejs";
+import sharp from "sharp";
 import Users from "../models/Users.js";
 import validate from "../validations/validate.js";
 import {emailVerification, generateRandomCode, translate} from "../helpers/index.js";
 import SubCategories from "../models/SubCategories.js";
 import UserPreferences from "../models/UserPreferences.js";
-import {signInProviders} from "constants/index.js";
+import {signInProviders} from "../constants/index.js";
+import {sendMail} from "../services/nodemailer.js";
 
-const {JWT_SECRET} = process.env;
+const {JWT_SECRET, BASE_URL} = process.env;
 
 class UsersController {
+    /** Users */
     static signIn = async (req, res, next) => {
         try {
             const {email, password} = req.body;
 
             const schema = Joi.object({
-                email : Joi.string().required().email().label(translate('email', req.lang)),
-                password : Joi.string().required().label(translate('password', req.lang)),
+                email: Joi.string().required().email(),
+                password: Joi.string().required(),
             });
 
             await validate({schema, values: {email, password}, lang: req.lang});
@@ -28,22 +34,38 @@ class UsersController {
                     email,
                     password: Users.hashPassword(password),
                 },
+                attributes: { exclude: ['verification_code'] }
             });
-
 
             if (!user) {
                 throw HttpError(401, translate('invalidEmailOrPassword', req.lang));
             }
 
-            const token = jwt.sign({userId: user.id}, JWT_SECRET, {
-                expiresIn: '1h'
-            });
+            const token = jwt.sign({userId: user.id}, JWT_SECRET);
 
-            res.json({
+            const response = {
                 status: 'ok',
                 token,
                 user,
-            })
+            };
+
+            if (!user.verified) {
+                const verificationCode = generateRandomCode();
+                const verify_token = jwt.sign({userId: user.id}, JWT_SECRET, {expiresIn: '5m'});
+                await emailVerification(email, verificationCode)
+
+                await Users.update({
+                    verification_code: verificationCode
+                }, {
+                    where: {
+                        id: user.id,
+                    }
+                });
+
+                response.verify_token = verify_token;
+            }
+
+            res.json(response)
 
         } catch (e) {
             next(e)
@@ -60,6 +82,15 @@ class UsersController {
 
             if (!signInProviders.includes(provider)) {
                 throw HttpError(422, 'Wrong provider');
+            }
+
+            let providerData;
+            switch (provider) {
+                case 'google':
+                    console.log(1111)
+                    break;
+                case 'facebook':
+                    console.log(1111)
             }
 
             // const user = await Users.findOne({
@@ -94,8 +125,8 @@ class UsersController {
             const {email, password} = req.body;
 
             const schema = Joi.object({
-                email : Joi.string().required().email().label(translate('email', req.lang)),
-                password : Joi.string().min(6).max(10).required().label(translate('password', req.lang)),
+                email: Joi.string().required().email(),
+                password: Joi.string().min(6).max(10).required(),
             });
 
             await validate({schema, values: {email, password}, lang: req.lang});
@@ -113,8 +144,16 @@ class UsersController {
             const verificationCode = generateRandomCode();
             await emailVerification(email, verificationCode)
 
+            await Users.update({
+                verification_code: verificationCode
+            }, {
+                where: {
+                    id: user.id,
+                }
+            });
+
             const token = jwt.sign({userId: user.id}, JWT_SECRET);
-            const verify_token = jwt.sign({userId: user.id, verificationCode}, JWT_SECRET, {expiresIn: '1m'});
+            const verify_token = jwt.sign({userId: user.id}, JWT_SECRET, {expiresIn: '5m'});
 
             res.json({
                 status: 'ok',
@@ -128,41 +167,10 @@ class UsersController {
         }
     }
 
-    static usersList = async (req, res, next) => {
-        try {
-            let {page = 1, search, limit} = req.query;
-            limit = +limit || 20;
-            page = +page || 1;
-
-            const where = {};
-            if (search) {
-                where[Op.or] = [
-                    {first_name: {[Op.like]: `%${search}%`}},
-                    {last_name: {[Op.like]: `%${search}%`}},
-                    {email: {[Op.like]: `%${search}%`}},
-                ]
-            }
-
-            const users = await Users.findAll({
-                where,
-                limit: limit,
-                offset: (page - 1) * limit,
-                logging: true,
-            });
-
-            res.json({
-                status: 'ok',
-                users,
-            })
-        } catch (e) {
-            next(e)
-        }
-    };
-
     static signUpUserInfo = async (req, res, next) => {
         try {
             const {userId} = req;
-            const user = Users.findByPk(userId);
+            const user = await Users.findByPk(userId);
 
             if (!user) {
                 throw HttpError(404, 'User not found');
@@ -171,9 +179,9 @@ class UsersController {
             const {first_name, last_name, phone_number} = req.body;
 
             const schema = Joi.object({
-                first_name : Joi.string().required().label(''),
-                last_name : Joi.string().required().label(''),
-                phone_number : Joi.string().required().label(''),
+                first_name: Joi.string().required(),
+                last_name: Joi.string().required(),
+                phone_number: Joi.string().required(),
             });
 
             await validate({schema, values: {first_name, last_name, phone_number}, lang: req.lang});
@@ -185,7 +193,9 @@ class UsersController {
                     id: userId,
                 }
             });
-            const data = await Users.findByPk(userId);
+            const data = await Users.findByPk(userId, {
+                attributes: { exclude: ['verification_code'] }
+            });
 
             res.json({
                 status: 'ok',
@@ -240,7 +250,6 @@ class UsersController {
 
             res.json({
                 status: 'ok',
-                data,
             });
         } catch (e) {
             next(e);
@@ -252,6 +261,9 @@ class UsersController {
             const {userId} = req;
             const {code, verify_token = ''} = req.body;
 
+            let user;
+            user = await Users.findByPk(userId);
+
             if (!code || !verify_token) {
                 throw HttpError(422, 'Invalid data');
             }
@@ -259,23 +271,25 @@ class UsersController {
             let tokenData;
             try {
                 tokenData = jwt.verify(verify_token, JWT_SECRET);
-            } catch(err) {
+            } catch (err) {
                 throw HttpError(403, 'Verify token expired');
             }
 
             if (userId !== tokenData.userId) {
                 throw HttpError(401, 'Unauthorized request');
             }
-            if (code !== tokenData.verificationCode) {
+
+            if (code !== user.verification_code) {
                 throw HttpError(422, translate('wrongCode', req.lang));
             }
 
-            await Users.update({verified: true}, {
+            await Users.update({verified: true, verification_code: null}, {
                 where: {
                     id: userId,
-                }
+                },
+                attributes: { exclude: ['verification_code'] }
             });
-            const user = await Users.findByPk(userId);
+            user = await Users.findByPk(userId);
 
             res.json({
                 status: 'ok',
@@ -298,7 +312,15 @@ class UsersController {
             const verificationCode = generateRandomCode();
             await emailVerification(user.email, verificationCode);
 
-            const verify_token = jwt.sign({userId: user.id, verificationCode}, JWT_SECRET, {expiresIn: '1m'});
+            await Users.update({
+                verification_code: verificationCode
+            }, {
+                where: {
+                    id: user.id,
+                }
+            });
+
+            const verify_token = jwt.sign({userId: user.id}, JWT_SECRET, {expiresIn: '1m'});
 
             res.json({
                 status: 'ok',
@@ -306,6 +328,234 @@ class UsersController {
             });
         } catch (e) {
             next(e);
+        }
+    };
+
+    static forgotPassword = async (req, res, next) => {
+        try {
+            const {email} = req.body;
+
+            const schema = Joi.object({
+                email: Joi.string().required().email(),
+            });
+            await validate({schema, values: {email}, lang: req.lang});
+
+            const user = await Users.findOne({where: {email}});
+
+            if (!user) {
+                throw HttpError(404, 'User not found');
+            }
+
+            const verificationCode = generateRandomCode();
+            const htmlDirection = path.resolve(path.join('./templates', 'resetPassword.ejs'));
+            const html = await ejs.renderFile(htmlDirection, {verificationCode});
+            const subject = 'Reset password';
+            await sendMail({email, subject, html});
+
+            await Users.update({
+                verification_code: verificationCode
+            }, {
+                where: {
+                    id: user.id,
+                }
+            });
+
+            const reset_token = jwt.sign({userId: user.id}, JWT_SECRET, {expiresIn: '5m'});
+
+            res.json({
+                status: 'ok',
+                reset_token,
+            });
+        } catch (e) {
+            next(e);
+        }
+    };
+
+    static confirmRestPasswordCode = async (req, res, next) => {
+        try {
+            const {reset_token, code} = req.body;
+
+            const schema = Joi.object({
+                code: Joi.string().required(),
+                reset_token: Joi.string().required(),
+            });
+            await validate({schema, values: {reset_token, code}, lang: req.lang});
+
+            let tokenData;
+            try {
+                tokenData = jwt.verify(reset_token, JWT_SECRET);
+            } catch (err) {
+                throw HttpError(403, 'Verify token expired');
+            }
+
+            const user = await Users.findByPk(tokenData.userId);
+
+            if (code !== user.verification_code) {
+                throw HttpError(422, translate('wrongCode', req.lang));
+            }
+
+            await Users.update({
+                verification_code: null
+            }, {
+                where: {
+                    id: user.id,
+                }
+            });
+
+            const token = jwt.sign({userId: user.id}, JWT_SECRET);
+
+            res.json({
+                status: 'ok',
+                user,
+                token,
+            });
+        } catch (e) {
+            next(e);
+        }
+    };
+
+    static resetPassword = async (req, res, next) => {
+        try {
+            const {password} = req.body;
+            const {userId} = req;
+
+            const schema = Joi.object({
+                password: Joi.string().min(6).max(10).required(),
+            });
+            await validate({schema, values: {password}, lang: req.lang});
+
+            const user = await Users.findByPk(userId);
+
+            if (!user) {
+                throw HttpError(404, 'User not found');
+            }
+
+            await Users.update({password}, {
+                where: {
+                    id: userId,
+                }
+            });
+
+            res.json({
+                status: 'ok',
+                user,
+            });
+        } catch (e) {
+            next(e);
+        }
+    };
+
+    static updateProfile = async (req, res, next) => {
+        try {
+            const {userId, file} = req;
+            const user = await Users.findByPk(userId);
+
+            if (!user) {
+                throw HttpError(404, 'User not found');
+            }
+
+            const {first_name, last_name, phone_number} = req.body;
+
+            let avatar;
+            if (file) {
+                avatar = path.join('/uploads/images', file.filename).replace(/\\/g, '/');
+                await Promise.all([
+                    sharp(file.path)
+                        .resize(256)
+                        .jpeg({
+                            quality: 85,
+                            mozjpeg: true,
+                        })
+                        .toFile(path.resolve(path.join('./public', avatar)))
+                ]);
+                if (user.avatar) {
+                    const oldImage = path.resolve(path.join('./public', user.avatar.replace(BASE_URL, '')));
+                    await fs.unlink(oldImage, (err) => {
+                        if (err) throw err;
+                        console.log('successfully');
+                    });
+                }
+            }
+
+            await Users.update({
+                first_name, last_name, phone_number, avatar,
+            }, {
+                where: {
+                    id: userId,
+                }
+            });
+            const data = await Users.findByPk(userId);
+
+            res.json({
+                status: 'ok',
+                data,
+            });
+        } catch (e) {
+            next(e);
+        }
+    };
+
+    /** Admins */
+    static adminSignIn = async (req, res, next) => {
+        try {
+            const {email, password} = req.body;
+
+            const user = await Users.findOne({
+                where: {
+                    email,
+                    password: Users.hashPassword(password),
+                    role: 'admin'
+                },
+                attributes: { exclude: ['verification_code'] }
+            });
+
+            if (!user) {
+                throw HttpError(401, translate('invalidEmailOrPassword', req.lang));
+            }
+
+            const token = jwt.sign({userId: user.id}, JWT_SECRET);
+
+            res.json({
+                status: 'ok',
+                token,
+                user,
+            })
+
+        } catch (e) {
+            next(e)
+        }
+    }
+
+    static usersList = async (req, res, next) => {
+        try {
+            let {page = 1, search, limit} = req.query;
+            limit = +limit || 10;
+            page = +page || 1;
+
+            const where = {};
+            if (search) {
+                where[Op.or] = [
+                    {first_name: {[Op.like]: `%${search}%`}},
+                    {last_name: {[Op.like]: `%${search}%`}},
+                    {email: {[Op.like]: `%${search}%`}},
+                    {phone_number: {[Op.like]: `%${search}%`}},
+                ]
+            }
+
+            const users = await Users.findAll({
+                where,
+                limit: limit,
+                offset: (page - 1) * limit,
+                logging: true,
+                attributes: { exclude: ['verification_code'] }
+            });
+
+            res.json({
+                status: 'ok',
+                users,
+            })
+        } catch (e) {
+            next(e)
         }
     };
 }

@@ -4,7 +4,7 @@ import authorization from "../middlewares/authorization.js";
 
 const router = Router();
 
-router.get('/', CategoriesController.categoriesList)
-router.get('/sub', CategoriesController.subCategoriesList)
+router.get('/', authorization, CategoriesController.categoriesList)
+router.get('/sub', authorization, CategoriesController.subCategoriesList)
 
 export default router;

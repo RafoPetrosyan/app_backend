@@ -2,6 +2,8 @@ import {DataTypes, Model} from "sequelize";
 import sequelize from "../services/sequelize.js";
 import Categories from "./Categories.js";
 
+const {BASE_URL} = process.env;
+
 class SubCategories extends Model {}
 
 SubCategories.init({
@@ -14,7 +16,15 @@ SubCategories.init({
     category_id: {
         type: DataTypes.BIGINT,
         allowNull: false,
-    }
+    },
+    image: {
+        type: DataTypes.STRING,
+        defaultValue: "",
+        get() {
+            const value = this.getDataValue('image');
+            return value ? `${BASE_URL}${value}` : '';
+        }
+    },
 }, {
     timestamps: false,
     sequelize,

@@ -6,9 +6,14 @@ import Categories from "./Categories.js";
 class CategoryLanguages extends Model {}
 
 CategoryLanguages.init({
-    category_id: {
+    id: {
+        type: DataTypes.BIGINT,
+        autoIncrement: true,
         allowNull: false,
         primaryKey: true,
+    },
+    category_id: {
+        allowNull: false,
         type: DataTypes.BIGINT,
     },
     name: {
@@ -24,7 +29,7 @@ CategoryLanguages.init({
     modelName: 'category_languages',
 });
 
-Categories.hasOne(CategoryLanguages, {
+Categories.hasMany(CategoryLanguages, {
     foreignKey: 'category_id',
     as: 'lang',
 })

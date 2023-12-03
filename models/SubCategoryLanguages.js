@@ -7,10 +7,15 @@ class SubCategoryLanguages extends Model {
 }
 
 SubCategoryLanguages.init({
+    id: {
+        type: DataTypes.BIGINT,
+        autoIncrement: true,
+        allowNull: false,
+        primaryKey: true,
+    },
     sub_category_id: {
         type: DataTypes.BIGINT,
         allowNull: false,
-        primaryKey: true,
     },
     name: {
         type: DataTypes.STRING,
@@ -25,7 +30,7 @@ SubCategoryLanguages.init({
     modelName: 'sub_category_languages',
 });
 
-SubCategories.hasOne(SubCategoryLanguages, {
+SubCategories.hasMany(SubCategoryLanguages, {
     foreignKey: 'sub_category_id',
     as: 'lang',
 })

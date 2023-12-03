@@ -1,6 +1,7 @@
 const ALLOW_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://localhost:4000',
 ]
 
 export default function cors(req, res, next){
