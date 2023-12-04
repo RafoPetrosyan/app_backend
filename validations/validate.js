@@ -1,7 +1,7 @@
 import HttpError from "http-errors";
 import messages from "./messages.js";
 
-export default function validate({values, schema, lang}) {
+export default function validate({values, schema, lang = 'en'}) {
     const {error} = schema.validate(values, { abortEarly: false, messages, errors: {language: lang, wrap: {label: false}}});
 
     if (error) {

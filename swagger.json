@@ -530,6 +530,325 @@
           }
         }
       }
+    },
+
+    "/api/admin/sign-in": {
+      "post": {
+        "tags": [
+          "Admin - Users"
+        ],
+        "summary": "Sign in",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "schema": {
+              "required": [
+                "password",
+                "email"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "tags": [
+          "Admin - Users"
+        ],
+        "summary": "Users list",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/admin/categories": {
+      "get": {
+        "tags": [
+          "Admin - Categories"
+        ],
+        "summary": "Categories list",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/admin/category/{id}": {
+      "get": {
+        "tags": [
+          "Admin - Categories"
+        ],
+        "summary": "Get category by id",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/admin/sub-categories": {
+      "get": {
+        "tags": [
+          "Admin - Categories"
+        ],
+        "summary": "Sub categories list",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/admin/sub-category/{id}": {
+      "get": {
+        "tags": [
+          "Admin - Categories"
+        ],
+        "summary": "Get sub category by id",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/admin/category": {
+      "post": {
+        "tags": [
+          "Admin - Categories"
+        ],
+        "summary": "Create category",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "data",
+            "in": "body",
+            "schema": {
+              "required": [
+                "en_lang",
+                "hy_lang",
+                "ru_lang",
+                "image"
+              ],
+              "properties": {
+                "en_lang": {
+                  "type": "string"
+                },
+                "hy_lang": {
+                  "type": "string"
+                },
+                "ru_lang": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/admin/category/{id} ": {
+      "put": {
+        "tags": [
+          "Admin - Categories"
+        ],
+        "summary": "Update category",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "name": "data",
+            "in": "body",
+            "schema": {
+              "required": [
+                "en_lang",
+                "hy_lang",
+                "ru_lang",
+                "image"
+              ],
+              "properties": {
+                "en_lang": {
+                  "type": "string"
+                },
+                "hy_lang": {
+                  "type": "string"
+                },
+                "ru_lang": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
     }
   }
 }
