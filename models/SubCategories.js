@@ -34,12 +34,14 @@ SubCategories.init({
 
 SubCategories.belongsTo(Categories, {
     foreignKey: 'category_id',
-    as: 'category'
+    as: 'category',
+    onDelete: 'CASCADE',
 })
 
 Categories.hasMany(SubCategories, {
     foreignKey: 'category_id',
     as: 'sub_categories',
+    onDelete: 'CASCADE',
 })
 
 export default SubCategories;

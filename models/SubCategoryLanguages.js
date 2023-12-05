@@ -33,6 +33,7 @@ SubCategoryLanguages.init({
 SubCategories.hasMany(SubCategoryLanguages, {
     foreignKey: 'sub_category_id',
     as: 'lang',
+    onDelete: 'cascade',
 })
 
 export default SubCategoryLanguages;

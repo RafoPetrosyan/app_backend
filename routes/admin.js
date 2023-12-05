@@ -19,10 +19,23 @@ router.post('/category',
     upload(imageMimTypes).single('image'),
     CategoriesController.createCategory
 )
-router.put('/category/:id',
+router.put('/category/update/:id',
     adminAuthorization,
     upload(imageMimTypes).single('image'),
     CategoriesController.updateCategory
 )
+router.delete('/category/delete/:id', adminAuthorization, CategoriesController.deleteCategory)
+
+router.post('/sub-category',
+    adminAuthorization,
+    upload(imageMimTypes).single('image'),
+    CategoriesController.createSubCategory
+)
+router.put('/sub-category/update/:id',
+    adminAuthorization,
+    upload(imageMimTypes).single('image'),
+    CategoriesController.updateSubCategory
+)
+router.delete('/sub-category/delete/:id', adminAuthorization, CategoriesController.deleteSubCategory)
 
 export default router;

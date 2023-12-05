@@ -1,9 +1,12 @@
 import path from "path";
 import ejs from "ejs";
 import {v4 as uniqueId} from "uuid";
+import fs from "fs";
 import locales from "../locales/index.js";
 import {sendMail} from "../services/nodemailer.js";
 import {mimTypesList} from "../constants/index.js";
+
+const {BASE_URL} = process.env;
 
 export const translate = (message, language) => locales[language][message];
 
@@ -24,4 +27,13 @@ export const emailVerification = async (email, verificationCode) => {
 
 export const generateImagePath = (mimetype) => {
     return `${new Date().toISOString().replace(/:/g, '-')}-${uniqueId()}${mimTypesList[mimetype]}`
+}
+
+export const deleteImage = async (image) => {
+    if (!image) return;
+    const imageUrl = path.resolve(path.join('./public', image.replace(BASE_URL, '')));
+    await fs.unlink(imageUrl, (err) => {
+        if (err) throw err;
+        console.log('successfully');
+    });
 }

@@ -32,6 +32,7 @@ CategoryLanguages.init({
 Categories.hasMany(CategoryLanguages, {
     foreignKey: 'category_id',
     as: 'lang',
+    onDelete: 'cascade',
 })
 
 export default CategoryLanguages;

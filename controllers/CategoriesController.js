@@ -2,15 +2,13 @@ import {Sequelize} from "sequelize";
 import Joi from "joi";
 import path from "path";
 import sharp from "sharp";
-import fs from 'fs';
 import HttpError from "http-errors";
 import Categories from "../models/Categories.js";
 import CategoryLanguages from "../models/CategoryLanguages.js";
 import SubCategories from "../models/SubCategories.js";
 import SubCategoryLanguages from "../models/SubCategoryLanguages.js";
 import validate from "../validations/validate.js";
-
-const {BASE_URL} = process.env;
+import {deleteImage} from "../helpers/index.js";
 
 class CategoriesController {
     static getCategory = async (id) => {
@@ -20,6 +18,10 @@ class CategoriesController {
                     model: CategoryLanguages,
                     required: true,
                     as: 'lang',
+                },
+                {
+                    model: SubCategories,
+                    as: 'sub_categories',
                 }
             ],
             logging: true,
@@ -313,13 +315,7 @@ class CategoriesController {
                         })
                         .toFile(path.resolve(path.join('./public', categoryImage)))
                 ]);
-                if (category.image) {
-                    const oldImage = path.resolve(path.join('./public', category.image.replace(BASE_URL, '')));
-                    await fs.unlink(oldImage, (err) => {
-                        if (err) throw err;
-                        console.log('successfully');
-                    });
-                }
+                await deleteImage(category.image);
             }
 
             await Categories.update({image: categoryImage}, {
@@ -330,6 +326,170 @@ class CategoriesController {
 
             res.json({
                 status: 'ok',
+            })
+        } catch (e) {
+            next(e)
+        }
+    };
+
+    static deleteCategory = async (req, res, next) => {
+        try {
+            const {id} = req.params;
+            const category = await this.getCategory(id);
+
+            if (!category) {
+                throw HttpError(404, 'Category not found');
+            }
+            await deleteImage(category.image);
+            for (let i = 0; i < category.sub_categories.length; i++) {
+                await deleteImage(category.sub_categories[i].image);
+            }
+
+            await Categories.destroy({where: {id}});
+
+            res.json({
+                status: 'ok'
+            })
+        } catch (e) {
+            next(e)
+        }
+    };
+
+    static createSubCategory = async (req, res, next) => {
+        try {
+            const {file: image} = req;
+            const {en_lang, hy_lang, ru_lang, category_id} = req.body;
+
+            const schema = Joi.object({
+                en_lang: Joi.string().required(),
+                hy_lang: Joi.string().required(),
+                ru_lang: Joi.string().required(),
+                image: Joi.object().required(),
+                category_id: Joi.string.required(),
+            });
+            await validate({schema, values: {en_lang, hy_lang, ru_lang, image, category_id}});
+
+            const category = await Categories.findByPk(category_id);
+
+            if (!category) {
+                throw HttpError(404, 'Category not found');
+            }
+
+            let categoryImage;
+            if (image) {
+                categoryImage = path.join('/uploads/images', image.filename).replace(/\\/g, '/');
+                await Promise.all([
+                    sharp(image.path)
+                        .resize(256)
+                        .jpeg({
+                            quality: 85,
+                            mozjpeg: true,
+                        })
+                        .toFile(path.resolve(path.join('./public', categoryImage)))
+                ]);
+            }
+            const subCategory = await Categories.create({image: categoryImage, category_id});
+            await SubCategoryLanguages.bulkCreate([
+                {name: en_lang, language: 'en', sub_category_id: subCategory.id},
+                {name: hy_lang, language: 'hy', sub_category_id: subCategory.id},
+                {name: ru_lang, language: 'ru', sub_category_id: subCategory.id},
+            ]);
+
+            res.json({
+                status: 'ok',
+            })
+        } catch (e) {
+            next(e)
+        }
+    };
+
+    static updateSubCategory = async (req, res, next) => {
+        try {
+            const {id} = req.params;
+            const {file: image} = req;
+            const {en_lang, hy_lang, ru_lang} = req.body;
+            const subCategory = await SubCategories.findByPk(id, {
+                include: [
+                    {
+                        model: SubCategoryLanguages,
+                        required: true,
+                        as: 'lang',
+                    }
+                ],
+                logging: true,
+            });
+
+            if (!subCategory) {
+                throw HttpError(404, 'Sub category not found');
+            }
+
+            if (en_lang) {
+                const langId = subCategory.lang.find(e => e.language === 'en').id;
+                await SubCategoryLanguages.update({name: en_lang}, {
+                    where: {
+                        id: langId,
+                    }
+                });
+            }
+            if (hy_lang) {
+                const langId = subCategory.lang.find(e => e.language === 'hy').id;
+                await SubCategoryLanguages.update({name: hy_lang}, {
+                    where: {
+                        id: langId,
+                    }
+                });
+            }
+            if (ru_lang) {
+                const langId = subCategory.lang.find(e => e.language === 'ru').id;
+                await SubCategoryLanguages.update({name: ru_lang}, {
+                    where: {
+                        id: langId,
+                    }
+                });
+            }
+
+            let categoryImage;
+            if (image) {
+                categoryImage = path.join('/uploads/images', image.filename).replace(/\\/g, '/');
+                await Promise.all([
+                    sharp(image.path)
+                        .resize(256)
+                        .jpeg({
+                            quality: 85,
+                            mozjpeg: true,
+                        })
+                        .toFile(path.resolve(path.join('./public', categoryImage)))
+                ]);
+                await deleteImage(subCategory.image);
+            }
+
+            await SubCategories.update({image: categoryImage}, {
+                where: {
+                    id: req.params.id,
+                }
+            });
+
+            res.json({
+                status: 'ok',
+            })
+        } catch (e) {
+            next(e)
+        }
+    };
+
+    static deleteSubCategory = async (req, res, next) => {
+        try {
+            const {id} = req.params;
+            const subCategory = await SubCategories.findByPk(id);
+
+            if (!subCategory) {
+                throw HttpError(404, 'Sub category not found');
+            }
+            await deleteImage(subCategory.image);
+            await SubCategories.destroy({where: {id}});
+
+            res.json({
+                status: 'ok'
             })
         } catch (e) {
             next(e)
