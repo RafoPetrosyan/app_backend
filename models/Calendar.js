@@ -1,5 +1,6 @@
 import {DataTypes, Model} from "sequelize";
 import sequelize from "../services/sequelize.js";
+import Users from "./Users.js";
 
 class Calendar extends Model {}
 
@@ -26,5 +27,10 @@ Calendar.init({
     tableName: 'calendar',
     modelName: 'calendar',
 });
+
+Users.hasMany(Calendar, {
+    foreignKey: 'user_id',
+    as: 'calendar',
+})
 
 export default Calendar;

@@ -4,9 +4,11 @@ import path from "path";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
 import Debug from "debug";
+import cron from "node-cron";
 import indexRouter from "./routes/index.js";
 import cors from "./middlewares/cors.js";
 import language from "./middlewares/language.js";
+import deleteCalendarOldData from "./helpers/deleteCalendarOldData.js";
 
 const debug = Debug('app:index');
 const app = express();
@@ -36,6 +38,9 @@ app.use((err, req, res, next) => {
         errors: err.errors,
     })
 });
+
+const cronJob = cron.schedule('0 0 * * *', deleteCalendarOldData);
+cronJob.start();
 
 debug('hello')
 
