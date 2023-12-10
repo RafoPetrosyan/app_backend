@@ -4,6 +4,7 @@ import swaggerDocument from "../swagger.json" assert {type: 'json'};
 import users from "./users.js";
 import admin from "./admin.js";
 import categories from "./categories.js";
+import calendar from "./calendar.js";
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.get('/', (req, res, next) => {
 router.use('/users', users);
 router.use('/admin', admin);
 router.use('/categories', categories);
+router.use('/calendar', calendar);
 router.use('/doc', swaggerUi.serve,  swaggerUi.setup(swaggerDocument, swaggerOptions));
 
 export default router;

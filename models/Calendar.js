@@ -15,11 +15,14 @@ Calendar.init({
         type: DataTypes.BIGINT,
         allowNull: false,
     },
-    start_date: {
-        type: DataTypes.DATE,
+    day: {
+        type: DataTypes.DATEONLY,
     },
-    end_date: {
-        type: DataTypes.DATE,
+    start_time: {
+        type: DataTypes.TIME,
+    },
+    end_time: {
+        type: DataTypes.TIME,
     }
 }, {
     timestamps: false,
