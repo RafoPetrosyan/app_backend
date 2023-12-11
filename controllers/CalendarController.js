@@ -1,93 +1,119 @@
-import {Sequelize} from "sequelize";
 import Joi from "joi";
 import moment from "moment";
-import path from "path";
-import sharp from "sharp";
 import HttpError from "http-errors";
-import Categories from "../models/Categories.js";
-import CategoryLanguages from "../models/CategoryLanguages.js";
-import SubCategories from "../models/SubCategories.js";
-import SubCategoryLanguages from "../models/SubCategoryLanguages.js";
 import validate from "../validations/validate.js";
-import {deleteImage} from "../helpers/index.js";
+import {checkValidTime} from "../helpers/index.js";
+import Calendar from "../models/Calendar.js";
+import Users from "../models/Users.js";
+import {Sequelize} from "sequelize";
 
 class CategoriesController {
-    static getCategory = async (id) => {
-        return await Categories.findByPk(id, {
-            include: [
-                {
-                    model: CategoryLanguages,
-                    required: true,
-                    as: 'lang',
-                },
-                {
-                    model: SubCategories,
-                    as: 'sub_categories',
-                }
-            ],
-            logging: true,
-        })
-    };
-
-    static addFreeDay = async (req, res, next) => {
+    static getMyCalendarList = async (req, res, next) => {
         try {
             const {userId} = req;
-            const {day, times} = req.body;
 
-            const schema = Joi.object({
-                day: Joi.date().default(() => moment().format('YYYY-MM-DD')).required(),
-                times: Joi.array().items(Joi.date().default(() => moment().format('HH:mm')).required()),
+            const data = await Calendar.findAll({
+                where: {user_id: userId},
+                attributes: {
+                    exclude: ['user_id']
+                }
             });
-            await validate({schema, values: {day, times}});
-
-            // if (!) {
-            //
-            // }
-
-            // const category = await Categories.findByPk(category_id);
-            //
-            // if (!category) {
-            //     throw HttpError(404, 'Category not found');
-            // }
-            //
-            // let categoryImage;
-            // if (image) {
-            //     categoryImage = path.join('/uploads/images', image.filename).replace(/\\/g, '/');
-            //     await Promise.all([
-            //         sharp(image.path)
-            //             .resize(256)
-            //             .jpeg({
-            //                 quality: 85,
-            //                 mozjpeg: true,
-            //             })
-            //             .toFile(path.resolve(path.join('./public', categoryImage)))
-            //     ]);
-            // }
-            // const subCategory = await Categories.create({image: categoryImage, category_id});
-            // await SubCategoryLanguages.bulkCreate([
-            //     {name: en_lang, language: 'en', sub_category_id: subCategory.id},
-            //     {name: hy_lang, language: 'hy', sub_category_id: subCategory.id},
-            //     {name: ru_lang, language: 'ru', sub_category_id: subCategory.id},
-            // ]);
 
             res.json({
                 status: 'ok',
+                data,
             })
         } catch (e) {
             next(e)
         }
     };
 
-    static deleteSubCategory = async (req, res, next) => {
+    static getList = async (req, res, next) => {
+        try {
+            const {userId} = req;
+
+            const user = await Users.findByPk(userId);
+            if (!user) {
+                throw HttpError(404, 'User not found');
+            }
+
+            const data = await Calendar.findAll({
+                include: [
+                    {
+                        model: Users,
+                        as: 'user',
+                        attributes: [],
+                        raw: true,
+                        nest: true,
+                        subQuery: false,
+                        distinct: true,
+                        duplicating: false,
+                    },
+                ],
+                attributes: [
+                    'id', 'day', 'start_time', 'end_time', 'user_id',
+                    [Sequelize.col('user.first_name'), 'first_name'],
+                    [Sequelize.col('user.last_name'), 'last_name'],
+                    [Sequelize.col('user.avatar'), 'avatar'],
+                ]
+            });
+
+            res.json({
+                status: 'ok',
+                data,
+            })
+        } catch (e) {
+            next(e)
+        }
+    };
+
+    static addFreeTime = async (req, res, next) => {
+        try {
+            const {userId} = req;
+            const {day, times} = req.body;
+            const timesArray = times?.split(',')?.map(e => e.trim());
+
+            const schema = Joi.object({
+                day: Joi.date().default(() => moment().format('YYYY-MM-DD')).required(),
+                times: Joi.array().items(Joi.string())
+            });
+            await validate({schema, values: {day, times: timesArray}});
+
+            const isValidDay = moment(day, 'YYYY-MM-DD').isValid();
+            const isStartTime = checkValidTime(timesArray[0]);
+            const isEndTime = checkValidTime(timesArray[1]);
+
+            [isValidDay, isEndTime, isStartTime].forEach(item => {
+                if (!item) {
+                    throw HttpError(422, 'Wrong date format or invalid date');
+                }
+            })
+
+            const data = await Calendar.create({
+                day,
+                start_time: timesArray[0],
+                end_time: timesArray[1],
+                user_id: userId,
+            });
+
+            res.json({
+                status: 'ok',
+                data,
+            })
+        } catch (e) {
+            next(e)
+        }
+    };
+
+    static deleteFreeTime = async (req, res, next) => {
         try {
             const {id} = req.params;
-            const subCategory = await SubCategories.findByPk(id);
+            const data = await Calendar.findByPk(id);
 
-            if (!subCategory) {
-                throw HttpError(404, 'Sub category not found');
+            if (!data) {
+                throw HttpError(404, 'Date not found');
             }
-            await deleteImage(subCategory.image);
-            await SubCategories.destroy({where: {id}});
+            await Calendar.destroy({where: {id}});
 
             res.json({
                 status: 'ok'

@@ -31,6 +31,11 @@ Calendar.init({
     modelName: 'calendar',
 });
 
+Calendar.belongsTo(Users, {
+    foreignKey: 'user_id',
+    as: 'user',
+})
+
 Users.hasMany(Calendar, {
     foreignKey: 'user_id',
     as: 'calendar',
