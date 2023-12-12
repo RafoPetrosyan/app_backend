@@ -1,9 +1,10 @@
 import {Op} from 'sequelize';
+import moment from "moment";
 import Calendar from "../models/Calendar.js";
 
 const deleteCalendarOldData = async () => {
     try {
-        const twentyFourHoursAgo = new Date(new Date() - 24 * 60 * 60 * 1000);
+        const twentyFourHoursAgo = moment().subtract(2, 'days').format('YYYY-MM-DD');
 
         await Calendar.destroy({
             where: {

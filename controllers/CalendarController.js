@@ -1,11 +1,11 @@
 import Joi from "joi";
 import moment from "moment";
 import HttpError from "http-errors";
+import {Sequelize} from "sequelize";
 import validate from "../validations/validate.js";
 import {checkValidTime} from "../helpers/index.js";
 import Calendar from "../models/Calendar.js";
 import Users from "../models/Users.js";
-import {Sequelize} from "sequelize";
 
 class CategoriesController {
     static getMyCalendarList = async (req, res, next) => {
@@ -31,6 +31,9 @@ class CategoriesController {
     static getList = async (req, res, next) => {
         try {
             const {userId} = req;
+            let {page, limit} = req.query;
+            limit = +limit || 10;
+            page = +page || 1;
 
             const user = await Users.findByPk(userId);
             if (!user) {
@@ -55,12 +58,17 @@ class CategoriesController {
                     [Sequelize.col('user.first_name'), 'first_name'],
                     [Sequelize.col('user.last_name'), 'last_name'],
                     [Sequelize.col('user.avatar'), 'avatar'],
-                ]
+                ],
+                limit: limit,
+                offset: (page - 1) * limit,
             });
+
+            const total_count = await Calendar.count();
 
             res.json({
                 status: 'ok',
                 data,
+                total_count
             })
         } catch (e) {
             next(e)

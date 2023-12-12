@@ -552,6 +552,16 @@
             "required": true,
             "type": "string",
             "description": "Bearer Token"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "number"
           }
         ],
         "responses": {
@@ -684,6 +694,7 @@
         }
       }
     },
+
 
     "/api/admin/sign-in": {
       "post": {

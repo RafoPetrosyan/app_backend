@@ -1,6 +1,7 @@
 import {DataTypes, Model} from "sequelize";
 import sequelize from "../services/sequelize.js";
 import Categories from "./Categories.js";
+import Users from "./Users.js";
 
 class Events extends Model {}
 
@@ -15,8 +16,16 @@ Events.init({
         type: DataTypes.BIGINT,
         allowNull: false,
     },
+    speaker_id: {
+        type: DataTypes.BIGINT,
+        allowNull: false,
+    },
     category_id: {
         type: DataTypes.BIGINT,
+        allowNull: false,
+    },
+    location: {
+        type: DataTypes.STRING,
         allowNull: false,
     },
     name: {
@@ -24,9 +33,6 @@ Events.init({
     },
     details: {
         type: DataTypes.STRING,
-    },
-    date: {
-        type: DataTypes.DATE,
     },
     start_date: {
         type: DataTypes.DATE,
@@ -40,6 +46,16 @@ Events.init({
     tableName: 'events',
     modelName: 'events',
 });
+
+Events.belongsTo(Users, {
+    foreignKey: 'user_id',
+    as: 'user',
+})
+
+Events.belongsTo(Users, {
+    foreignKey: 'speaker_id',
+    as: 'speaker',
+})
 
 Events.hasOne(Categories, {
     foreignKey: 'category_id',
