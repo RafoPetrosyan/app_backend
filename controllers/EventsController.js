@@ -2,7 +2,6 @@ import Joi from "joi";
 import moment from "moment";
 import HttpError from "http-errors";
 import validate from "../validations/validate.js";
-import {checkValidTime} from "../helpers/index.js";
 import Calendar from "../models/Calendar.js";
 
 class EventsController {
@@ -28,7 +27,7 @@ class EventsController {
             const isValidStartDate = moment(start_date, 'YYYY-MM-DD').isValid();
             const isValidEndDate = moment(end_date, 'YYYY-MM-DD').isValid();
 
-            if (!isValidStartDate $$ !isValidEndDate) {
+            if (!isValidStartDate && !isValidEndDate) {
                 throw HttpError(422, 'Wrong date format or invalid date');
             }
 

@@ -24,7 +24,11 @@ Events.init({
         type: DataTypes.BIGINT,
         allowNull: false,
     },
-    location: {
+    longitude: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    latitude: {
         type: DataTypes.STRING,
         allowNull: false,
     },

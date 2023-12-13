@@ -5,6 +5,7 @@ import users from "./users.js";
 import admin from "./admin.js";
 import categories from "./categories.js";
 import calendar from "./calendar.js";
+import events from "./events.js";
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router.use('/users', users);
 router.use('/admin', admin);
 router.use('/categories', categories);
 router.use('/calendar', calendar);
+router.use('/events', events);
 router.use('/doc', swaggerUi.serve,  swaggerUi.setup(swaggerDocument, swaggerOptions));
 
 export default router;
