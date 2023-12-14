@@ -23,7 +23,7 @@ EventImages.init({
         type: DataTypes.STRING,
         allowNull: false,
     },
-    is_main: {
+    is_cover: {
         type: DataTypes.BOOLEAN,
     }
 }, {

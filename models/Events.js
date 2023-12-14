@@ -45,7 +45,7 @@ Events.init({
         type: DataTypes.DATE,
     }
 }, {
-    timestamps: false,
+    timestamps: true,
     sequelize,
     tableName: 'events',
     modelName: 'events',
@@ -61,7 +61,7 @@ Events.belongsTo(Users, {
     as: 'speaker',
 })
 
-Events.hasOne(Categories, {
+Events.belongsTo(Categories, {
     foreignKey: 'category_id',
     as: 'category',
 })
