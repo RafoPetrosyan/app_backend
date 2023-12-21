@@ -5,8 +5,8 @@ import authorization from "../middlewares/authorization.js";
 const router = Router();
 
 router.get('/my-list', authorization, CalendarController.getMyCalendarList)
-router.get('/list', authorization, CalendarController.getList)
+router.get('/', authorization, CalendarController.getList)
 router.post('/', authorization, CalendarController.addFreeTime)
-router.delete('/delete/:id', authorization, CalendarController.deleteFreeTime)
+router.delete('/:id', authorization, CalendarController.deleteFreeTime)
 
 export default router;

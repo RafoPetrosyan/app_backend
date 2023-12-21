@@ -69,6 +69,9 @@ Users.init({
     },
     verification_code: {
         type: DataTypes.CHAR(6),
+        get() {
+            return undefined;
+        }
     },
     role: {
         type: DataTypes.ENUM('user', 'admin'),

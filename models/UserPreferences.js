@@ -37,4 +37,9 @@ SubCategories.hasMany(UserPreferences, {
     as: 'preferences',
 })
 
+UserPreferences.belongsTo(SubCategories, {
+    foreignKey: 'sub_category_id',
+    as: 'sub_category',
+})
+
 export default UserPreferences;

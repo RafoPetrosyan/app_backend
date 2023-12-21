@@ -4,7 +4,7 @@ import Calendar from "../models/Calendar.js";
 
 const deleteCalendarOldData = async () => {
     try {
-        const twentyFourHoursAgo = moment().subtract(2, 'days').format('YYYY-MM-DD');
+        const twentyFourHoursAgo = moment().subtract(2, 'days').format('YYYY-MM-DD HH:mm');
 
         await Calendar.destroy({
             where: {

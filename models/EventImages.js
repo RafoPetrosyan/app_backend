@@ -2,6 +2,8 @@ import {DataTypes, Model} from "sequelize";
 import sequelize from "../services/sequelize.js";
 import Events from "./Events.js";
 
+const {BASE_URL} = process.env;
+
 class EventImages extends Model {}
 
 EventImages.init({
@@ -16,21 +18,30 @@ EventImages.init({
         allowNull: false,
     },
     original: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.STRING,
         allowNull: false,
+        get() {
+            const value = this.getDataValue('original');
+            return value ? `${BASE_URL}${value}` : '';
+        }
     },
     thumb: {
         type: DataTypes.STRING,
         allowNull: false,
+        get() {
+            const value = this.getDataValue('thumb');
+            return value ? `${BASE_URL}${value}` : '';
+        }
     },
     is_cover: {
         type: DataTypes.BOOLEAN,
+        defaultValue: false,
     }
 }, {
     timestamps: false,
     sequelize,
-    tableName: 'event_mages',
-    modelName: 'event_mages',
+    tableName: 'event_images',
+    modelName: 'event_images',
 });
 
 Events.hasMany(EventImages, {

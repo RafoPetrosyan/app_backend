@@ -5,7 +5,6 @@ import fs from "fs";
 import locales from "../locales/index.js";
 import {sendMail} from "../services/nodemailer.js";
 import {mimTypesList} from "../constants/index.js";
-import moment from "moment";
 
 const {BASE_URL} = process.env;
 

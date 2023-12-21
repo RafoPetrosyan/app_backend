@@ -10,7 +10,7 @@ const upload = (mimTypes = []) => {
             },
         }),
         limits: {
-            fileSize: 50 * 1024 * 1024,
+            fileSize: 10 * 1024 * 1024,
         },
         fileFilter: (req, file, cb) => {
             if (mimTypes.includes(file.mimetype)) {

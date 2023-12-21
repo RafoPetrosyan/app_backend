@@ -33,8 +33,7 @@ class UsersController {
                 where: {
                     email,
                     password: Users.hashPassword(password),
-                },
-                attributes: { exclude: ['verification_code'] }
+                }
             });
 
             if (!user) {
@@ -193,9 +192,7 @@ class UsersController {
                     id: userId,
                 }
             });
-            const data = await Users.findByPk(userId, {
-                attributes: { exclude: ['verification_code'] }
-            });
+            const data = await Users.findByPk(userId);
 
             res.json({
                 status: 'ok',
@@ -261,9 +258,6 @@ class UsersController {
             const {userId} = req;
             const {code, verify_token = ''} = req.body;
 
-            let user;
-            user = await Users.findByPk(userId);
-
             if (!code || !verify_token) {
                 throw HttpError(422, 'Invalid data');
             }
@@ -279,15 +273,22 @@ class UsersController {
                 throw HttpError(401, 'Unauthorized request');
             }
 
-            if (code !== user.verification_code) {
+            let user;
+            user = await Users.findOne({
+                where: {
+                    id: userId,
+                    verification_code: code
+                }
+            });
+
+            if (!user) {
                 throw HttpError(422, translate('wrongCode', req.lang));
             }
 
             await Users.update({verified: true, verification_code: null}, {
                 where: {
                     id: userId,
-                },
-                attributes: { exclude: ['verification_code'] }
+                }
             });
             user = await Users.findByPk(userId);
 
@@ -388,9 +389,14 @@ class UsersController {
                 throw HttpError(403, 'Verify token expired');
             }
 
-            const user = await Users.findByPk(tokenData.userId);
+            const user = await Users.findOne({
+                where: {
+                    id: tokenData.userId,
+                    verification_code: code
+                }
+            });
 
-            if (code !== user.verification_code) {
+            if (!user) {
                 throw HttpError(422, translate('wrongCode', req.lang));
             }
 
@@ -505,8 +511,7 @@ class UsersController {
                     email,
                     password: Users.hashPassword(password),
                     role: 'admin'
-                },
-                attributes: { exclude: ['verification_code'] }
+                }
             });
 
             if (!user) {

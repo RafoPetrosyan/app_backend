@@ -401,6 +401,7 @@
           "Users"
         ],
         "summary": "Update profile",
+        "consumes": ["multipart/form-data"],
         "parameters": [
           {
             "name": "language",
@@ -416,25 +417,24 @@
             "description": "Bearer Token"
           },
           {
-            "name": "data",
-            "in": "body",
-            "schema": {
-              "properties": {
-                "first_name": {
-                  "type": "string"
-                },
-                "last_name": {
-                  "type": "string"
-                },
-                "phone_number": {
-                  "type": "string"
-                },
-                "avatar": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
+            "name": "first_name",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "last_name",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "phone_number",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "avatar",
+            "in": "formData",
+            "type": "file"
           }
         ],
         "responses": {
@@ -533,47 +533,6 @@
     },
 
 
-    "/api/calendar/list": {
-      "get": {
-        "tags": [
-          "Calendar"
-        ],
-        "summary": "Get all calendar list",
-        "parameters": [
-          {
-            "name": "language",
-            "in": "header",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "type": "string",
-            "description": "Bearer Token"
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "type": "number"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "type": "number"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "422": {
-            "description": "Fail"
-          }
-        }
-      }
-    },
     "/api/calendar/my-list": {
       "get": {
         "tags": [
@@ -655,9 +614,48 @@
             "description": "Fail"
           }
         }
+      },
+      "get": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Get all calendar list",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
       }
     },
-    "/api/calendar/delete/{id}": {
+    "/api/calendar/{id}": {
       "delete": {
         "tags": [
           "Calendar"
@@ -695,6 +693,309 @@
       }
     },
 
+
+    "/api/events": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Get Events list",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "number",
+            "default": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "number",
+            "default": 10
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "type": "string",
+            "description": "Search by event name and details info"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Create event",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "start_date",
+            "in": "formData",
+            "type": "string",
+            "format": "date",
+            "required": true
+          },
+          {
+            "name": "end_date",
+            "in": "formData",
+            "type": "string",
+            "format": "date",
+            "required": true
+          },
+          {
+            "name": "longitude",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "latitude",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "name",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "details",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "category_id",
+            "in": "formData",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "speaker_id",
+            "in": "formData",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "cover_image",
+            "in": "formData",
+            "type": "file",
+            "required": true
+          },
+          {
+            "name": "images[]",
+            "in": "formData",
+            "type": "file",
+            "multipleOf": 10,
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
+    "/api/events/{id}": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Get event by id",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Update event",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "name": "start_date",
+            "in": "formData",
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "end_date",
+            "in": "formData",
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "longitude",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "latitude",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "details",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "category_id",
+            "in": "formData",
+            "type": "number"
+          },
+          {
+            "name": "speaker_id",
+            "in": "formData",
+            "type": "number"
+          },
+          {
+            "name": "cover_image",
+            "in": "formData",
+            "type": "file"
+          },
+          {
+            "name": "images[]",
+            "in": "formData",
+            "type": "file",
+            "multipleOf": 10
+          },
+          {
+            "name": "delete_image_ids",
+            "in": "formData",
+            "type": "string",
+            "description": "Example` 1,2,3,18"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Delete event",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "Bearer Token"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Fail"
+          }
+        }
+      }
+    },
 
     "/api/admin/sign-in": {
       "post": {
@@ -844,6 +1145,7 @@
           "Admin - Categories"
         ],
         "summary": "Create category",
+        "consumes": ["multipart/form-data"],
         "parameters": [
           {
             "name": "Authorization",
@@ -853,31 +1155,28 @@
             "description": "Bearer Token"
           },
           {
-            "name": "data",
-            "in": "body",
-            "schema": {
-              "required": [
-                "en_lang",
-                "hy_lang",
-                "ru_lang",
-                "image"
-              ],
-              "properties": {
-                "en_lang": {
-                  "type": "string"
-                },
-                "hy_lang": {
-                  "type": "string"
-                },
-                "ru_lang": {
-                  "type": "string"
-                },
-                "image": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
+            "name": "en_lang",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "hy_lang",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "ru_lang",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "type": "file",
+            "required": true
           }
         ],
         "responses": {
@@ -896,6 +1195,7 @@
           "Admin - Categories"
         ],
         "summary": "Update category",
+        "consumes": ["multipart/form-data"],
         "parameters": [
           {
             "name": "Authorization",
@@ -911,31 +1211,24 @@
             "type": "number"
           },
           {
-            "name": "data",
-            "in": "body",
-            "schema": {
-              "required": [
-                "en_lang",
-                "hy_lang",
-                "ru_lang",
-                "image"
-              ],
-              "properties": {
-                "en_lang": {
-                  "type": "string"
-                },
-                "hy_lang": {
-                  "type": "string"
-                },
-                "ru_lang": {
-                  "type": "string"
-                },
-                "image": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
+            "name": "en_lang",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "hy_lang",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "ru_lang",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "type": "file"
           }
         ],
         "responses": {
@@ -1051,6 +1344,7 @@
           "Admin - Categories"
         ],
         "summary": "Create sub category",
+        "consumes": ["multipart/form-data"],
         "parameters": [
           {
             "name": "Authorization",
@@ -1060,35 +1354,34 @@
             "description": "Bearer Token"
           },
           {
-            "name": "data",
-            "in": "body",
-            "schema": {
-              "required": [
-                "en_lang",
-                "hy_lang",
-                "ru_lang",
-                "image",
-                "category_id"
-              ],
-              "properties": {
-                "en_lang": {
-                  "type": "string"
-                },
-                "hy_lang": {
-                  "type": "string"
-                },
-                "ru_lang": {
-                  "type": "string"
-                },
-                "image": {
-                  "type": "string",
-                  "format": "binary"
-                },
-                "category_id": {
-                  "type": "string"
-                }
-              }
-            }
+            "name": "en_lang",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "hy_lang",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "ru_lang",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "type": "file",
+            "required": true
+          },
+          {
+            "name": "category_id",
+            "in": "formData",
+            "type": "string",
+            "required": true
           }
         ],
         "responses": {
@@ -1107,6 +1400,7 @@
           "Admin - Categories"
         ],
         "summary": "Update sub category",
+        "consumes": ["multipart/form-data"],
         "parameters": [
           {
             "name": "Authorization",
@@ -1122,31 +1416,24 @@
             "type": "number"
           },
           {
-            "name": "data",
-            "in": "body",
-            "schema": {
-              "required": [
-                "en_lang",
-                "hy_lang",
-                "ru_lang",
-                "image"
-              ],
-              "properties": {
-                "en_lang": {
-                  "type": "string"
-                },
-                "hy_lang": {
-                  "type": "string"
-                },
-                "ru_lang": {
-                  "type": "string"
-                },
-                "image": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
+            "name": "en_lang",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "hy_lang",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "ru_lang",
+            "in": "formData",
+            "type": "string"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "type": "file"
           }
         ],
         "responses": {
