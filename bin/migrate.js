@@ -7,6 +7,9 @@ import UserPreferences from "../models/UserPreferences.js";
 import Events from "../models/Events.js";
 import EventImages from "../models/EventImages.js";
 import Calendar from "../models/Calendar.js";
+import Conversations from "../models/Conversations.js";
+import UserConversations from "../models/UserConversations.js";
+import Messages from "../models/Messages.js";
 
 async function main() {
     await Users.sync({alter: true});
@@ -18,6 +21,9 @@ async function main() {
     await Events.sync({alter: true});
     await EventImages.sync({alter: true});
     await Calendar.sync({alter: true});
+    await Conversations.sync({alter: true});
+    await UserConversations.sync({alter: true});
+    await Messages.sync({alter: true});
 
     process.exit(0);
 }
